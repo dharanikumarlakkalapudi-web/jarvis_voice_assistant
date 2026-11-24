@@ -90,20 +90,73 @@ warnings.filterwarnings("ignore")
 
 import threading
 import tempfile
+import ctypes
 
 _speak_lock = threading.Lock()
+_interrupt_event = threading.Event()
+_VK_ESCAPE = 0x1B
+
+
+def _on_esc_press(_event=None):
+    _interrupt_event.set()
+
+
+if keyboard_available and keyboard:
+    try:
+        keyboard.on_press_key('esc', _on_esc_press)
+    except Exception:
+        pass
+
+
+def _flush_esc_state():
+    """Clears any stale Esc press state before starting a new speech utterance."""
+    _interrupt_event.clear()
+    try:
+        # Calling GetAsyncKeyState flushes the least-significant 'pressed since last call' bit
+        ctypes.windll.user32.GetAsyncKeyState(_VK_ESCAPE)
+    except Exception:
+        pass
+
+
+def _check_esc_interrupted() -> bool:
+    """Returns True if Esc was pressed (works globally without admin privileges)."""
+    if _interrupt_event.is_set():
+        return True
+    try:
+        # 0x8000 = currently held down, 0x0001 = pressed since last check (catches quick taps)
+        state = ctypes.windll.user32.GetAsyncKeyState(_VK_ESCAPE)
+        if state & 0x8001:
+            _interrupt_event.set()
+            return True
+    except Exception:
+        pass
+    if keyboard_available and keyboard:
+        try:
+            if keyboard.is_pressed('esc'):
+                _interrupt_event.set()
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def stop_speaking():
+    """Programmatically interrupts any active TTS playback."""
+    _interrupt_event.set()
+
 
 # ==========================================
 # 1. TEXT-TO-SPEECH (TTS) SETUP
 # ==========================================
 
 def speak(text: str):
-    """Speaks the given text using Edge TTS (thread-safe) and allows interruption."""
+    """Speaks the given text using Edge TTS (thread-safe) and allows instant Esc interruption."""
     from configuration.manager import config_manager
     if not config_manager.get("features.voice_output", True):
         return
 
     with _speak_lock:
+        _flush_esc_state()
         print(f"\n[Jarvis Speaking]: {text}")
         print("[Press 'Esc' to interrupt]")
 
@@ -119,16 +172,21 @@ def speak(text: str):
 
             asyncio.run(generate_audio())
 
+            # If user pressed Esc while audio was being synthesized, skip playback immediately
+            if _check_esc_interrupted():
+                print("\n[Interrupted]")
+                return
+
             pygame.mixer.init()
             pygame.mixer.music.load(temp_file)
             pygame.mixer.music.play()
 
             while pygame.mixer.music.get_busy():
-                if keyboard_available and keyboard and keyboard.is_pressed('esc'):
+                if _check_esc_interrupted():
                     pygame.mixer.music.stop()
                     print("\n[Interrupted]")
                     break
-                pygame.time.Clock().tick(10)
+                time.sleep(0.02)  # 50 Hz polling for instant response
 
             pygame.mixer.music.unload()
             pygame.mixer.quit()
@@ -138,10 +196,18 @@ def speak(text: str):
             try:
                 import win32com.client
                 speaker = win32com.client.Dispatch("SAPI.SpVoice")
-                speaker.Speak(text)
+                # SVSFlagsAsync = 1 (non-blocking), SVSFPurgeBeforeSpeak = 2 (instant stop)
+                speaker.Speak(text, 1)
+                while speaker.Status.RunningState != 1:
+                    if _check_esc_interrupted():
+                        speaker.Speak("", 2)
+                        print("\n[Interrupted]")
+                        break
+                    time.sleep(0.02)
             except Exception as fallback_err:
                 print(f"[TTS Fallback Error]: {fallback_err}")
         finally:
+            _interrupt_event.clear()
             if temp_file and os.path.exists(temp_file):
                 try:
                     os.remove(temp_file)
