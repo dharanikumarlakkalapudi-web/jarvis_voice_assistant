@@ -154,8 +154,12 @@ def speak(text: str):
 # ==========================================
 from configuration.manager import config_manager
 model_size = config_manager.get("voice.model_size", "small")
-# Running on GPU for high performance
-whisper_model = WhisperModel(model_size, device="cuda", compute_type="float16")
+# Prefer GPU (CUDA float16) for low-latency transcription, with automatic CPU (int8) fallback
+try:
+    whisper_model = WhisperModel(model_size, device="cuda", compute_type="float16")
+except Exception as _cuda_err:
+    print(f"[Voice] CUDA unavailable ({_cuda_err}); falling back to CPU (int8) for Faster-Whisper.")
+    whisper_model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
 _cached_threshold = None
 
