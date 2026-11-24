@@ -65,8 +65,8 @@ Tools are classified into tiered risk levels enforced by `SecurityManager` and l
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/dharanikumarlakkalapudi-web/jarvis-voice-assistant.git
-   cd jarvis-voice-assistant
+   git clone https://github.com/dharanikumarlakkalapudi-web/jarvis_voice_assistant.git
+   cd jarvis_voice_assistant
    ```
 
 2. **Setup Virtual Environment & Install Dependencies:**
@@ -87,7 +87,7 @@ Tools are classified into tiered risk levels enforced by `SecurityManager` and l
    ```
 
 4. *(Optional)* **Download Face ID ONNX Models & Enroll Your Face:**
-   Download the two OpenCV Zoo models into the project root directory (`jarvis-voice-assistant/`):
+   Download the two OpenCV Zoo models into the project root directory (`jarvis_voice_assistant/`):
    - **YuNet Face Detector:** [`face_detection_yunet_2023mar.onnx`](https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx)
    - **SFace Face Recognizer:** [`face_recognition_sface_2021dec.onnx`](https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx)
 
