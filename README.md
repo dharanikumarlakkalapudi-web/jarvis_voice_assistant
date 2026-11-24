@@ -121,3 +121,7 @@ See [JARVIS_CAPABILITIES.md](JARVIS_CAPABILITIES.md) for a detailed capability g
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
+
+---
+
+License: [MIT](LICENSE)
