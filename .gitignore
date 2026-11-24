@@ -1,9 +1,6 @@
 venv/
 __pycache__/
 .env
-ui/node_modules/
-ui/dist/
-ui/build/
 *.onnx
 *.pt
 *.npy
