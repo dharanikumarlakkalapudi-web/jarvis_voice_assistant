@@ -1,25 +1,24 @@
 # Jarvis: Personal Voice Assistant (Terminal Edition)
 
-Jarvis is a highly capable personal voice assistant built with Python. It integrates AI models via Groq / OpenAI, Google Gemini vision for screen analysis, computer vision for Face ID authentication, local Whisper voice recognition, and proactive agentic capabilities—all directly accessible from a sleek interactive terminal console.
+Jarvis is a modular personal voice assistant for Windows built with Python. It integrates LLMs via Groq / OpenAI, Google Gemini Vision for screen analysis, computer vision for Face ID authentication, local Faster-Whisper GPU speech recognition, and proactive background automations—all accessible through an interactive terminal console and hands-free microphone input.
 
 ## 🚀 Features
 
-- **Dual-Mode Terminal & Voice Interface**: Type commands directly into the terminal or talk naturally using microphone speech recognition.
-- **Face ID & Biometric Security**: Secure access using face detection (YuNet) and recognition (SFace) for high-risk commands, with interactive confirmation prompts for sensitive actions.
-- **Multi-Modal AI & Multi-Turn Memory**: Specialized agents for vision, coding, and general tasks powered by Groq / OpenAI and Google Gemini Vision, with rolling conversation history.
-- **Speech-to-Text & Text-to-Speech**: Faster-Whisper running locally on GPU for sub-second transcription with thread-safe Microsoft Edge TTS playback.
-- **Screen Capture & Vision Analysis**: Take screenshots and analyze your display in real time using Gemini Vision.
-- **Web Search & Media Playback**: Live web search via DuckDuckGo (with Wikipedia fallback) and YouTube / Spotify media playback.
-- **Permanent SQLite Memory**: Long-term memory storage for user preferences and facts.
-- **Core OS & System Controls**: System time, app launching, volume & screen brightness control, PowerShell execution, and file management.
-- **Google Calendar & Cron Automations**: Fetch or schedule calendar events and run background tasks on 5-field cron schedules.
-- **Blender 3D Modeling Ready**: Generate `bpy` scripts and control Blender procedurally or through real-time socket commands.
+- **Dual-Mode Terminal & Voice Interface**: Type commands directly in the terminal or speak naturally via microphone.
+- **Face ID & Biometric Security**: Uses YuNet + SFace face verification for high-risk actions (PowerShell execution, file deletion) and interactive confirmation prompts for sensitive actions.
+- **Multi-Agent AI & Multi-Turn Memory**: Specialized agents for general tasks, coding, vision, and background automations powered by Groq / OpenAI and Gemini Vision, with rolling conversation history.
+- **Speech-to-Text & Text-to-Speech**: Local Faster-Whisper running on GPU for low-latency transcription with thread-safe Microsoft Edge TTS playback (interruptible with `Esc`).
+- **Screen Capture & Vision Analysis**: Capture screenshots and analyze your screen in real time using Gemini Vision.
+- **Web Search & Media Playback**: Live web search via DuckDuckGo (with Wikipedia fallback) and YouTube / Spotify playback.
+- **Permanent SQLite Memory**: Long-term memory storage and retrieval backed by SQLite (`jarvis_v2.db`).
+- **Core OS & System Controls**: System time, app launching, speaker volume & screen brightness control, PowerShell execution, and file read/create/delete.
+- **Google Calendar & Cron Automations**: Fetch or schedule Google Calendar events (optional OAuth setup) and run background tasks on 5-field cron schedules.
 
 ## 🛠️ Prerequisites
 
-- **Python 3.9+** (Tested on Python 3.13)
-- NVIDIA GPU with CUDA (optional, for accelerated Whisper STT)
-- The necessary `.onnx` machine learning models for Face ID
+- **Windows 10/11** with **Python 3.10+** (Tested on Python 3.13)
+- **NVIDIA GPU with CUDA** (for GPU-accelerated Faster-Whisper STT)
+- *(Optional)* Face ID ONNX models (`face_detection_yunet_2023mar.onnx` and `face_recognition_sface_2021dec.onnx`) if enabling Face ID
 
 ## ⚙️ Installation & Setup
 
@@ -29,7 +28,7 @@ Jarvis is a highly capable personal voice assistant built with Python. It integr
    cd persnal_voice_assistant
    ```
 
-2. **Setup Virtual Environment:**
+2. **Setup Virtual Environment & Install Dependencies:**
    ```powershell
    python -m venv venv
    .\venv\Scripts\activate
@@ -37,7 +36,7 @@ Jarvis is a highly capable personal voice assistant built with Python. It integr
    ```
 
 3. **Configure Environment Variables:**
-   Edit `.env` and set your API keys:
+   Copy `.env.example` to `.env` and fill in your API keys:
    ```env
    GROQ_API_KEY="your-groq-key"
    MODEL_NAME="openai/gpt-oss-20b"
@@ -46,13 +45,26 @@ Jarvis is a highly capable personal voice assistant built with Python. It integr
    VISION_MODEL_NAME="gemini-flash-latest"
    ```
 
+4. *(Optional)* **Enroll Face ID:**
+   ```powershell
+   python enroll_face.py
+   ```
+
 ## 🚀 Usage
 
-Start Jarvis in the terminal:
-```bash
+Start Jarvis from the project root (automatically activates the local `venv`):
+```powershell
 python main.py
 ```
-You can type commands directly in the `Jarvis > ` prompt or speak through your microphone! Type `help` for special commands or `exit` to quit.
+
+Type commands at the `Jarvis >` prompt or speak into your microphone. Built-in terminal commands:
+- `help` — Show available capabilities and commands
+- `voice on` / `voice off` — Enable or pause microphone listening
+- `status` — View background worker and monitor status
+- `clear` — Clear the terminal screen
+- `exit` / `quit` — Shut down Jarvis
+
+See [JARVIS_CAPABILITIES.md](JARVIS_CAPABILITIES.md) for a detailed capability guide.
 
 ## 🤝 Contributing
 
