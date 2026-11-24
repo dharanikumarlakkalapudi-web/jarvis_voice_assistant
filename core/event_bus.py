@@ -21,8 +21,6 @@ class EventBus:
         if data is None:
             data = {}
         
-        print(f"[EventBus] Published: {event_type}")
-        
         if event_type in self._subscribers:
             for callback in self._subscribers[event_type]:
                 try:

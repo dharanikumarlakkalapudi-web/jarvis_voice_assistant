@@ -19,33 +19,45 @@ class DatabaseManager:
         """Initializes the database with schema.sql if it doesn't exist."""
         if not os.path.exists(self.db_path):
             print(f"[Database] Creating new V2 database at {self.db_path}")
-            with self._get_connection() as conn:
+            conn = self._get_connection()
+            try:
                 with open(SCHEMA_PATH, 'r', encoding='utf-8') as f:
                     conn.executescript(f.read())
                 conn.commit()
+            finally:
+                conn.close()
 
     def execute(self, query, params=()):
         """Executes an INSERT/UPDATE/DELETE query."""
-        with self._get_connection() as conn:
+        conn = self._get_connection()
+        try:
             cursor = conn.cursor()
             cursor.execute(query, params)
             conn.commit()
             return cursor.lastrowid
+        finally:
+            conn.close()
 
     def fetchall(self, query, params=()):
         """Executes a SELECT query and returns all results."""
-        with self._get_connection() as conn:
+        conn = self._get_connection()
+        try:
             cursor = conn.cursor()
             cursor.execute(query, params)
             return [dict(row) for row in cursor.fetchall()]
+        finally:
+            conn.close()
 
     def fetchone(self, query, params=()):
         """Executes a SELECT query and returns one result."""
-        with self._get_connection() as conn:
+        conn = self._get_connection()
+        try:
             cursor = conn.cursor()
             cursor.execute(query, params)
             row = cursor.fetchone()
             return dict(row) if row else None
+        finally:
+            conn.close()
 
 # Singleton instance
 db = DatabaseManager()

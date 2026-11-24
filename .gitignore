@@ -11,10 +11,12 @@ ui/build/
 master_face_model.yml
 *.db
 credentials.json
+token.json
 token_*.json
 reminders.json
 automations.json
 config.json
+screenshot.png
 test.png
 test_screenshot.png
 tmp_model/

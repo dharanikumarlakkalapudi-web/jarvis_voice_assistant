@@ -23,7 +23,11 @@ class GeneralAgent(BaseAgent):
             "read_email",
             "send_email",
             "read_calendar",
-            "create_calendar_event"
+            "create_calendar_event",
+            "play_media",
+            "set_brightness",
+            "set_volume",
+            "web_search"
         ]
 
     @property

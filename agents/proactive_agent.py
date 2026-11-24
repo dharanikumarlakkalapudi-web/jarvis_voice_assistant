@@ -12,16 +12,16 @@ class ProactiveAgent(BaseAgent):
     @property
     def allowed_tools(self) -> list:
         return [
-            "read_email"
-            # Note: Screen scraping removed per user request
+            "read_email",
+            "read_calendar"
         ]
 
     @property
     def system_instructions(self) -> str:
         return """
 You are JARVIS's Proactive Background Agent.
-You run silently in a separate thread. 
-Your job is to periodically check the user's unread emails. 
-If you find something highly urgent or important, you should synthesize a short alert message. 
-Otherwise, output 'NO_ALERT'.
+You run silently in a separate thread.
+Your job is to check the user's unread emails and upcoming calendar events according to the automation prompt.
+If you find something highly urgent or a briefing is requested, synthesize a concise summary.
+If checking for urgent alerts and nothing is urgent, output exactly 'NO_ALERT'.
 """

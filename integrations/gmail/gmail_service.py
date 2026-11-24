@@ -2,6 +2,7 @@ import os
 import pickle
 import base64
 import glob
+from email.mime.text import MIMEText
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -11,6 +12,7 @@ from integrations.integration_manager import integration_manager
 
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/calendar.events'
 ]
 
@@ -20,12 +22,13 @@ class GmailService:
         self.creds_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "credentials.json")
         self.base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-    def get_service(self, token_file='token.json'):
+    def get_service(self, token_file='token.json', require_send=False):
         creds = None
         token_path = os.path.join(self.base_dir, token_file)
         
         if os.path.exists(token_path):
-            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+            # Load with the token's own granted scopes so existing readonly tokens don't break on refresh
+            creds = Credentials.from_authorized_user_file(token_path)
             
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
@@ -41,18 +44,25 @@ class GmailService:
                     integration_manager.set_status("gmail", "error", "credentials.json not found")
                     return None
                 
-                # If we're strictly a background service now, popping up a browser might hang.
-                # For Phase 4 we will allow it to pop up a browser if run manually, 
-                # but log it properly.
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.creds_path, SCOPES)
-                    creds = flow.run_local_server(port=0)
+                    creds = flow.run_local_server(port=0, access_type='offline', prompt='consent')
                 except Exception as e:
+                    print(f"[GmailService] OAuth authentication failed: {e}")
                     integration_manager.set_status("gmail", "error", f"Auth failed: {str(e)}")
                     return None
                 
             with open(token_path, 'w') as token:
                 token.write(creds.to_json())
+
+        if require_send:
+            granted = set(creds.scopes or [])
+            if 'https://www.googleapis.com/auth/gmail.send' not in granted and 'https://mail.google.com/' not in granted:
+                integration_manager.set_status("gmail", "scope_missing", "gmail.send scope not granted")
+                raise PermissionError(
+                    f"Token '{token_file}' does not have Gmail send permission. "
+                    "Re-authenticate using 'python authenticate_email.py' (or delete token.json and re-auth) to grant gmail.send."
+                )
 
         integration_manager.set_status("gmail", "connected")
         return build('gmail', 'v1', credentials=creds)
@@ -133,5 +143,35 @@ class GmailService:
                 all_email_summaries.append(f"An error occurred while fetching emails for {token_file}: {error}")
 
         return "\n\n".join(all_email_summaries)
+
+    def send_email(self, to: str, subject: str, body: str, account_name: str = None) -> str:
+        """Sends an email via Gmail API using the specified or default account."""
+        token_file = "token.json"
+        if account_name and account_name.lower() not in ("all", "default"):
+            candidate = f"token_{account_name.lower()}.json"
+            if os.path.exists(os.path.join(self.base_dir, candidate)):
+                token_file = candidate
+            else:
+                return f"Could not find an email account linked as '{account_name}'."
+
+        try:
+            service = self.get_service(token_file=token_file, require_send=True)
+            if not service:
+                return f"Failed to authenticate Gmail for {token_file}."
+
+            message = MIMEText(body)
+            message["to"] = to
+            message["subject"] = subject
+            raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
+
+            sent = service.users().messages().send(
+                userId="me",
+                body={"raw": raw_message}
+            ).execute()
+            return f"Email sent successfully to {to} with subject '{subject}' (Message ID: {sent.get('id')})."
+        except PermissionError as pe:
+            return str(pe)
+        except Exception as e:
+            return f"Failed to send email: {e}"
 
 gmail_service = GmailService()

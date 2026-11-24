@@ -1,3 +1,9 @@
+import os
+from dotenv import load_dotenv
+
+# Load environment configuration from .env file
+load_dotenv()
+
 from core.event_bus import event_bus
 from database.sqlite_database import db
 

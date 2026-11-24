@@ -4,7 +4,7 @@ class AIProvider(ABC):
     """Base interface for all AI models (Groq, OpenAI, Ollama, etc.)"""
     
     @abstractmethod
-    def generate_response(self, prompt: str, system_prompt: str = None, tools: list = None) -> dict:
+    def generate_response(self, prompt: str, system_prompt: str = None, tools: list = None, history: list = None) -> dict:
         """
         Sends a prompt to the LLM and returns a dictionary containing:
         - "text": The textual response (if any)

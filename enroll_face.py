@@ -1,7 +1,7 @@
 import cv2
 import os
 import time
-from face_tools import get_working_camera
+from security.face_id import get_working_camera
 import numpy as np
 
 def enroll():

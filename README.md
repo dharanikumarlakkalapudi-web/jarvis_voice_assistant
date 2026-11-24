@@ -1,31 +1,25 @@
-# Jarvis: Personal Voice Assistant
+# Jarvis: Personal Voice Assistant (Terminal Edition)
 
-Jarvis is a highly capable personal voice assistant built with a Python backend and a React/TypeScript frontend. It integrates various AI models, computer vision for Face ID authentication, voice recognition, and proactive agentic capabilities.
+Jarvis is a highly capable personal voice assistant built with Python. It integrates AI models via Groq / OpenAI, Google Gemini vision for screen analysis, computer vision for Face ID authentication, local Whisper voice recognition, and proactive agentic capabilities—all directly accessible from a sleek interactive terminal console.
 
 ## 🚀 Features
 
-- **Face ID & Voice Authentication**: Secure, seamless access using advanced face detection (Yunet) and recognition (SFace).
-- **Proactive Agents**: Runs background workers that anticipate your needs and provide context-aware suggestions.
-- **Multi-Modal AI**: Specialized agents for vision, coding, general tasks, and integrations.
-- **Modern Web UI**: A sleek, Vite+React-based web interface for monitoring and interacting with the system.
-- **Modular Architecture**: Built with highly decoupled components (Agents, Core, Configuration, Integrations, Security, Tools, and Vision).
-- **Rich Integrations**: Natively supports Gmail, Google Calendar, and more.
-
-## 📂 Architecture
-
-For a deep dive into how Jarvis works, check out the [ARCHITECTURE.md](ARCHITECTURE.md) and [JARVIS_CAPABILITIES.md](JARVIS_CAPABILITIES.md) files.
-
-- `agents/`: Contains specialized AI agents.
-- `core/`: The central orchestrator, event bus, and application lifecycle management.
-- `security/`: Handles credential vaulting, Face ID, and overall security management.
-- `ui/`: The Vite + React + TS frontend for the assistant.
-- `integrations/`: Third-party service connections (Google APIs, etc.).
+- **Dual-Mode Terminal & Voice Interface**: Type commands directly into the terminal or talk naturally using microphone speech recognition.
+- **Face ID & Biometric Security**: Secure access using face detection (YuNet) and recognition (SFace) for high-risk commands, with interactive confirmation prompts for sensitive actions.
+- **Multi-Modal AI & Multi-Turn Memory**: Specialized agents for vision, coding, and general tasks powered by Groq / OpenAI and Google Gemini Vision, with rolling conversation history.
+- **Speech-to-Text & Text-to-Speech**: Faster-Whisper running locally on GPU for sub-second transcription with thread-safe Microsoft Edge TTS playback.
+- **Screen Capture & Vision Analysis**: Take screenshots and analyze your display in real time using Gemini Vision.
+- **Web Search & Media Playback**: Live web search via DuckDuckGo (with Wikipedia fallback) and YouTube / Spotify media playback.
+- **Permanent SQLite Memory**: Long-term memory storage for user preferences and facts.
+- **Core OS & System Controls**: System time, app launching, volume & screen brightness control, PowerShell execution, and file management.
+- **Google Calendar & Cron Automations**: Fetch or schedule calendar events and run background tasks on 5-field cron schedules.
+- **Blender 3D Modeling Ready**: Generate `bpy` scripts and control Blender procedurally or through real-time socket commands.
 
 ## 🛠️ Prerequisites
 
-- **Python 3.9+**
-- **Node.js 18+** (for the UI)
-- The necessary `.onnx` and `.pt` machine learning models (these are ignored by git due to size and must be placed in the project root/appropriate folders).
+- **Python 3.9+** (Tested on Python 3.13)
+- NVIDIA GPU with CUDA (optional, for accelerated Whisper STT)
+- The necessary `.onnx` machine learning models for Face ID
 
 ## ⚙️ Installation & Setup
 
@@ -35,34 +29,30 @@ For a deep dive into how Jarvis works, check out the [ARCHITECTURE.md](ARCHITECT
    cd persnal_voice_assistant
    ```
 
-2. **Backend Setup:**
-   ```bash
-   # Create and activate a virtual environment
+2. **Setup Virtual Environment:**
+   ```powershell
    python -m venv venv
-   # On Windows: venv\Scripts\activate
-   # On Mac/Linux: source venv/bin/activate
-   
-   # Install dependencies (assuming you have a requirements.txt or pipfile)
+   .\venv\Scripts\activate
    pip install -r requirements.txt
    ```
 
-3. **Frontend Setup:**
-   ```bash
-   cd ui
-   npm install
-   npm run dev
+3. **Configure Environment Variables:**
+   Edit `.env` and set your API keys:
+   ```env
+   GROQ_API_KEY="your-groq-key"
+   MODEL_NAME="openai/gpt-oss-20b"
+   VISION_OPENAI_API_KEY="your-google-ai-studio-gemini-key"
+   VISION_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
+   VISION_MODEL_NAME="gemini-flash-latest"
    ```
-
-4. **Environment Variables:**
-   Copy `.env.example` to `.env` and fill in your API keys and configuration parameters.
 
 ## 🚀 Usage
 
-Start the main application backend:
+Start Jarvis in the terminal:
 ```bash
 python main.py
 ```
-This command initializes the event bus, spins up the AI orchestrator, and starts the server for the UI to connect via websockets.
+You can type commands directly in the `Jarvis > ` prompt or speak through your microphone! Type `help` for special commands or `exit` to quit.
 
 ## 🤝 Contributing
 

@@ -1,6 +1,5 @@
 from .base_tool import BaseTool
 from security.security_manager import SecurityManager
-import pywhatkit
 
 class PlayMediaTool(BaseTool):
     @property

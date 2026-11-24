@@ -50,7 +50,11 @@ class SendEmailTool(BaseTool):
             "properties": {
                 "to": {"type": "string", "description": "Recipient email address"},
                 "subject": {"type": "string", "description": "Email subject"},
-                "body": {"type": "string", "description": "Email body content"}
+                "body": {"type": "string", "description": "Email body content"},
+                "account_name": {
+                    "type": "string",
+                    "description": "Optional Gmail account name (e.g. 'personal', 'college'). Defaults to default token."
+                }
             },
             "required": ["to", "subject", "body"]
         }
@@ -59,6 +63,5 @@ class SendEmailTool(BaseTool):
     def risk_level(self) -> int:
         return SecurityManager.RISK_DANGEROUS  # Level 3: Requires Face ID
 
-    def execute(self, to: str, subject: str, body: str, **kwargs) -> str:
-        # Stub for Phase 4. Would normally use gmail_service.send_email()
-        return f"Securely sent email to {to} with subject '{subject}'. (Stub)"
+    def execute(self, to: str, subject: str, body: str, account_name: str = None, **kwargs) -> str:
+        return gmail_service.send_email(to=to, subject=subject, body=body, account_name=account_name)

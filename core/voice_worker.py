@@ -29,10 +29,9 @@ class VoiceWorker:
         print("[VoiceWorker] Stopped.")
 
     def _loop(self):
-        # Give UI time to boot up
-        time.sleep(3)
+        time.sleep(1)
         event_bus.publish("voice.state", {"state": "SPEAKING"})
-        msg = "I am back online with the new dashboard. How can I help?"
+        msg = "Jarvis is online and ready. How can I help you?"
         event_bus.publish("voice.response", {"text": msg})
         voice.speak(msg)
         
@@ -62,15 +61,28 @@ class VoiceWorker:
                     
                 print(f"[Voice Input]: {user_input}")
                 
-                # Check for multiple wake words
+                # Check wake word requirement
                 from configuration.manager import config_manager
-                wake_words = config_manager.get("activation.wake_words", ["jarvis"])
+                wake_words = config_manager.get("activation.wake_words", ["jarvis", "computer", "assistant"])
+                require_wake_word = config_manager.get("activation.require_wake_word", False)
                 hotkey_woke = voice.consume_hotkey()
                 
-                if not hotkey_woke and not any(ww.lower() in user_input.lower() for ww in wake_words):
-                    print(f"(Debug: Ignoring input because no wake word ({', '.join(wake_words)}) or hotkey was found)")
+                extended_wake_words = list(wake_words) + [
+                    "hey jarvis", "hi jarvis", "ok jarvis", "okay jarvis",
+                    "jarves", "travis", "harvest", "service"
+                ]
+                has_wake_word = any(ww.lower() in user_input.lower() for ww in extended_wake_words)
+                
+                if require_wake_word and not hotkey_woke and not has_wake_word:
+                    print(f"(Debug: Ignoring input because no wake word was found)")
                     event_bus.publish("voice.state", {"state": "IDLE"})
                     continue
+                
+                # Clean leading wake word if present so the LLM gets the pure query
+                import re
+                clean_query = re.sub(r'^(hey\s+|hi\s+|ok\s+|okay\s+)?(jarvis|computer|assistant)[,\s]*', '', user_input, flags=re.I).strip()
+                if clean_query:
+                    user_input = clean_query
                 
                 event_bus.publish("voice.transcript", {"text": user_input})
                 
@@ -92,6 +104,7 @@ class VoiceWorker:
                 
                 # 2. Process through Orchestrator
                 response_text = self.orchestrator.process_request(user_input)
+                print(f"\n[Jarvis]: {response_text}\n")
                 
                 # Publish the AI's response to the transcript
                 event_bus.publish("voice.response", {"text": response_text})

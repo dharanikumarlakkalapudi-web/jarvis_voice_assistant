@@ -36,6 +36,7 @@ tool_registry.register(CreateCalendarEventTool())
 
 from .media_tools import PlayMediaTool
 from .system_control_tools import SetBrightnessTool, SetVolumeTool
+from .web_tools import WebSearchTool
 
 # Register Media Tools
 tool_registry.register(PlayMediaTool())
@@ -43,3 +44,6 @@ tool_registry.register(PlayMediaTool())
 # Register System Control Tools
 tool_registry.register(SetBrightnessTool())
 tool_registry.register(SetVolumeTool())
+
+# Register Web Search Tool
+tool_registry.register(WebSearchTool())

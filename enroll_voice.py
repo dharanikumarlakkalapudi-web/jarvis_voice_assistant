@@ -20,7 +20,7 @@ import warnings
 warnings.filterwarnings("ignore")
 from speechbrain.inference.speaker import SpeakerRecognition
 
-from voice import capture_speech_audio
+from voice.manager import capture_speech_audio
 
 def enroll():
     print("========================================")

@@ -59,6 +59,9 @@ class CreateFileTool(BaseTool):
 
     def execute(self, filepath: str, content: str, **kwargs) -> str:
         try:
+            parent = os.path.dirname(filepath)
+            if parent:
+                os.makedirs(parent, exist_ok=True)
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
             return f"Successfully created file at {filepath}"

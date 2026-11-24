@@ -8,6 +8,7 @@ from integrations.integration_manager import integration_manager
 
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/calendar.events'
 ]
 
@@ -21,7 +22,7 @@ class CalendarService:
         token_path = os.path.join(self.base_dir, token_file)
         
         if os.path.exists(token_path):
-            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+            creds = Credentials.from_authorized_user_file(token_path)
             
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
@@ -39,8 +40,9 @@ class CalendarService:
                 
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.creds_path, SCOPES)
-                    creds = flow.run_local_server(port=0)
+                    creds = flow.run_local_server(port=0, access_type='offline', prompt='consent')
                 except Exception as e:
+                    print(f"[CalendarService] OAuth authentication failed: {e}")
                     integration_manager.set_status("google_calendar", "error", f"Auth failed: {str(e)}")
                     return None
                     
@@ -56,7 +58,7 @@ class CalendarService:
             return "Failed to authenticate Calendar API."
 
         try:
-            now = datetime.datetime.utcnow().isoformat() + 'Z'
+            now = datetime.datetime.now(datetime.timezone.utc).isoformat()
             events_result = service.events().list(
                 calendarId='primary', timeMin=now,
                 maxResults=max_results, singleEvents=True,
@@ -82,25 +84,36 @@ class CalendarService:
         except Exception as e:
             return f"Failed to fetch calendar events: {e}"
 
+    @staticmethod
+    def _normalize_iso_datetime(dt_str: str, default_offset: str = "+05:30") -> tuple[datetime.datetime, str]:
+        """Parses an ISO datetime string and attaches default_offset only when timezone is omitted."""
+        cleaned = dt_str.strip()
+        parsed = datetime.datetime.fromisoformat(cleaned.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            return parsed, parsed.isoformat() + default_offset
+        return parsed, parsed.isoformat()
+
     def schedule_event(self, summary: str, start_time: str, end_time: str = None) -> str:
         service = self.get_service()
         if not service:
             return "Failed to authenticate Calendar API."
             
         try:
+            start_dt, start_iso = self._normalize_iso_datetime(start_time)
             if not end_time:
-                start_dt = datetime.datetime.fromisoformat(start_time)
                 end_dt = start_dt + datetime.timedelta(hours=1)
-                end_time = end_dt.isoformat()
+                end_iso = end_dt.isoformat() + ("+05:30" if end_dt.tzinfo is None else "")
+            else:
+                _, end_iso = self._normalize_iso_datetime(end_time)
                 
             event = {
               'summary': summary,
               'start': {
-                'dateTime': start_time + '+05:30',
+                'dateTime': start_iso,
                 'timeZone': 'Asia/Kolkata',
               },
               'end': {
-                'dateTime': end_time + '+05:30',
+                'dateTime': end_iso,
                 'timeZone': 'Asia/Kolkata',
               },
             }

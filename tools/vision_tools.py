@@ -21,7 +21,7 @@ class TakeScreenshotTool(BaseTool):
             "properties": {
                 "filepath": {
                     "type": "string", 
-                    "description": "Optional custom filepath. If not provided, saves to e:\jarvis\screenshot.png"
+                    "description": r"Optional custom filepath. If not provided, saves to e:\jarvis\screenshot.png"
                 }
             }
         }
@@ -42,8 +42,6 @@ class TakeScreenshotTool(BaseTool):
         except Exception as e:
             return f"Failed to take screenshot: {str(e)}"
 
-# A fully implemented AnalyzeScreenTool would instantiate the Gemini Vision API client
-# For Phase 3, we will just stub the execution but register the tool
 class AnalyzeScreenTool(BaseTool):
     @property
     def name(self) -> str:
@@ -58,7 +56,11 @@ class AnalyzeScreenTool(BaseTool):
         return {
             "type": "object",
             "properties": {
-                "prompt": {"type": "string", "description": "What to look for or analyze on the screen."}
+                "prompt": {"type": "string", "description": "What to look for or analyze on the screen."},
+                "screen": {
+                    "type": "string",
+                    "description": "Which monitor to inspect ('all', 'left', 'right', '1', '2'). Defaults to 'all'."
+                }
             },
             "required": ["prompt"]
         }
@@ -67,7 +69,6 @@ class AnalyzeScreenTool(BaseTool):
     def risk_level(self) -> int:
         return SecurityManager.RISK_LOW
 
-    def execute(self, prompt: str, **kwargs) -> str:
-        # In the future this uses the Gemini API from old vision_tools.py
-        # We will fully migrate the vision API call in Phase 4 when integrations are done
-        return f"V2 Vision Analysis (Stub): I see the screen. You asked: '{prompt}'. [Vision API call pending migration in Phase 4]"
+    def execute(self, prompt: str, screen: str = "all", **kwargs) -> str:
+        from vision.screen import analyze_screen
+        return analyze_screen(prompt=prompt, screen=screen)

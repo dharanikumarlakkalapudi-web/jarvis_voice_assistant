@@ -15,8 +15,8 @@ from tools.email_tools import ReadEmailTool
 from integrations.gmail.gmail_service import gmail_service
 gmail_service.read_unread_emails = lambda **kwargs: "Inbox: test@example.com\nEmail 1:\nFrom: test@example.com\nSubject: URGENT: Server Down\nSnippet: The main database is down! Please fix immediately!\n"
 
-import face_tools
-face_tools.verify_user_face = lambda: True
+from security import face_id
+face_id.verify_user_face = lambda: True
 
 def run_tests():
     print("=== JARVIS V2 Phase 5: Multi-Agent Routing Test ===\n")

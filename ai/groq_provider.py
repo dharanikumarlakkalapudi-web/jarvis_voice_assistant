@@ -5,8 +5,8 @@ from .provider_interface import AIProvider
 from security.credential_vault import vault
 
 class GroqProvider(AIProvider):
-    def __init__(self, model="openai/gpt-oss-20b"):
-        self.model = model
+    def __init__(self, model=None):
+        self.model = model or os.getenv("MODEL_NAME", "openai/gpt-oss-20b")
         self.client = None
 
     def _get_client(self):
@@ -15,18 +15,20 @@ class GroqProvider(AIProvider):
             
         api_key = vault.get_credential("groq_api_key")
         if not api_key:
-            api_key = os.getenv("GROQ_API_KEY")
+            api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
             
         if not api_key:
-            raise ValueError("[GroqProvider] API Key not found in Vault or Environment!")
+            raise ValueError("[GroqProvider] API Key not found in Vault or Environment (GROQ_API_KEY / OPENAI_API_KEY)!")
             
         self.client = Groq(api_key=api_key)
         return self.client
 
-    def generate_response(self, prompt: str, system_prompt: str = None, tools: list = None) -> dict:
+    def generate_response(self, prompt: str, system_prompt: str = None, tools: list = None, history: list = None) -> dict:
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
+        if history:
+            messages.extend(history)
             
         messages.append({"role": "user", "content": prompt})
 

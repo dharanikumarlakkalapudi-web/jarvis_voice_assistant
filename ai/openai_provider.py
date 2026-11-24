@@ -19,13 +19,16 @@ class OpenAIProvider(AIProvider):
         if not api_key:
             raise ValueError("[OpenAIProvider] API Key not found in Vault or Environment!")
             
-        self.client = OpenAI(api_key=api_key)
+        base_url = os.getenv("OPENAI_BASE_URL") or None
+        self.client = OpenAI(api_key=api_key, base_url=base_url)
         return self.client
 
-    def generate_response(self, prompt: str, system_prompt: str = None, tools: list = None) -> dict:
+    def generate_response(self, prompt: str, system_prompt: str = None, tools: list = None, history: list = None) -> dict:
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
+        if history:
+            messages.extend(history)
             
         messages.append({"role": "user", "content": prompt})
 
